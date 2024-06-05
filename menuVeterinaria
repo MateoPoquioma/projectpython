@@ -1,0 +1,147 @@
+import datetime
+
+class Animal:
+    contador_codigo = 0
+
+    def __init__(self, tipo_de_animal, nombre, edad, sexo, peso, fecha_de_nacimiento, historial_medico, dni_dueño, tipo_de_servicio):
+        Animal.contador_codigo += 1
+        self.__codigo = str(Animal.contador_codigo).zfill(3)
+        self.__dni_dueño = dni_dueño
+        self._tipo_de_animal = tipo_de_animal
+        self._nombre = nombre
+        self._edad = edad
+        self._sexo = sexo
+        self._peso = peso
+        self._fecha_de_nacimiento = fecha_de_nacimiento
+        self._historial_medico = historial_medico
+        self._fecha_de_consulta = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self._tipo_de_servicio = tipo_de_servicio
+
+    def __str__(self):
+        return (f"========================================== \nCódigo: {self.__codigo} \nDNI Dueño: {self.__dni_dueño} \nTipo de Animal: {self._tipo_de_animal} " +
+                f"\nNombre: {self._nombre} \nEdad: {self._edad} \nSexo: {self._sexo} " +
+                f"\nPeso: {self._peso} \nFecha de Nacimiento: {self._fecha_de_nacimiento}  " +
+                f"\nHistorial Médico: {self._historial_medico} \nFecha de Consulta: {self._fecha_de_consulta} " +
+                f"\nTipo de Servicio: {self._tipo_de_servicio} \n==========================================")
+
+    def guardar_en_archivo(self, archivo):
+        try:
+            with open(archivo, 'a') as file:
+                file.write(self.__str__() + "\n")
+        except Exception as e:
+            print(f"Error al guardar el archivo: {e}")
+
+    @staticmethod
+    def leer_archivo(archivo):
+        try:
+            with open(archivo, 'r') as file:
+                return file.readlines()
+        except FileNotFoundError:
+            return []
+        except Exception as e:
+            print(f"Error al leer el archivo: {e}")
+            return []
+
+    @staticmethod
+    def actualizar_registro(archivo, codigo, nuevos_datos):
+        registros = Animal.leer_archivo(archivo)
+        try:
+            with open(archivo, 'w') as file:
+                for registro in registros:
+                    if registro.startswith(f"Código: {codigo} "):
+                        file.write(nuevos_datos.__str__() + "\n")
+                    else:
+                        file.write(registro)
+        except Exception as e:
+            print(f"Error al actualizar el archivo: {e}")
+
+    @staticmethod
+    def eliminar_registro(archivo, codigo):
+        registros = Animal.leer_archivo(archivo)
+        registros_completos = "".join(registros)
+        registros_separados = registros_completos.split("\n\n")
+        try:
+            with open(archivo, 'w') as file:
+                for registro in registros_separados:
+                    if f"Código: {codigo} " not in registro:
+                        file.write(registro + "\n\n")
+        except Exception as e:
+            print(f"Error al eliminar el registro: {e}")
+
+def obtener_datos_animal():
+    dni_dueño = input("Ingrese el DNI del dueño: ")
+    tipo_de_animal = input("Ingrese el tipo de animal: ")
+    nombre = input("Ingrese el nombre del animal: ")
+    edad = input("Ingrese la edad del animal: ")
+    sexo = input("Ingrese el sexo del animal: ")
+    peso = input("Ingrese el peso del animal: ")
+    fecha_de_nacimiento = input("Ingrese la fecha de nacimiento del animal (YYYY-MM-DD): ")
+    historial_medico = input("Ingrese el historial médico del animal: ")
+    tipo_de_servicio = input("Ingrese el tipo de servicio: ")
+
+    return Animal(tipo_de_animal, nombre, edad, sexo, peso, fecha_de_nacimiento, historial_medico, dni_dueño, tipo_de_servicio)
+
+def agregar_registro():
+    animal = obtener_datos_animal()
+    animal.guardar_en_archivo('animales.txt')
+    print("\nRegistro generado con éxito...")
+
+def ver_registros():
+    registros = Animal.leer_archivo('animales.txt')
+    if registros:
+        for registro in registros:
+            print(registro.strip())
+    else:
+        print("No hay registros para mostrar.")
+
+def editar_registro():
+    codigo = input("Ingrese el código del registro que desea editar: ")
+    registros = Animal.leer_archivo('animales.txt')
+    if not registros:
+        print("No hay registros para editar.")
+        return
+
+    registro_a_editar = None
+    for registro in registros:
+        if registro.startswith(f"Código: {codigo}"):
+            registro_a_editar = registro
+            break
+
+    if registro_a_editar:
+        nuevos_datos = obtener_datos_animal()
+        nuevos_datos._Animal__codigo = codigo
+        Animal.actualizar_registro('animales.txt', codigo, nuevos_datos)
+        print("Registro actualizado con éxito.")
+    else:
+        print(f"No se encontró un registro con el código: {codigo}")
+
+def eliminar_registro():
+    codigo = input("Ingrese el código del registro que desea eliminar: ")
+    Animal.eliminar_registro('animales.txt', codigo)
+    print("Registro eliminado.")
+
+def menu_principal():
+    while True:
+        print("\n-- Menú de Gestión de Animales --")
+        print("1. Agrega Registro")
+        print("2. Ver Registros")
+        print("3. Editar Registro")
+        print("4. Eliminar Registro")
+        print("5. Salir")
+        opcion = input("Seleccione una opción: ")
+
+        if opcion == '1':
+            agregar_registro()
+        elif opcion == '2':
+            ver_registros()
+        elif opcion == '3':
+            editar_registro()
+        elif opcion == '4':
+            eliminar_registro()
+        elif opcion == '5':
+            print("Saliendo del programa...")
+            break
+        else:
+            print("Opción no válida. Intente nuevamente.")
+
+menu_principal()
